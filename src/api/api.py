@@ -8,6 +8,8 @@ from pandas import ExcelWriter
 
 setrecursionlimit(100000)
 
+API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty"}
+
 
 class API:
     def __init__(self, api_key: Text) -> None:
@@ -16,10 +18,9 @@ class API:
         self._api_auth_header: Dict = {"x-api-key": self.api_key}
         self.data: Any = None
 
-    def get_all_lide_domy_byty(self, skip_start=0, skip_step=30, data=None) -> Any:
-
+    def _get_all(self, api_suffix: Text, skip_start=0, skip_step=30, data=None) -> Any:
         filter_ = '?filter={"skip": %d}' % (skip_start)
-        reurl = f"{self._api_url_base}lide-domy-byty{filter_}"
+        reurl = f"{self._api_url_base}{api_suffix}{filter_}"
         response = r.get(reurl, headers=self._api_auth_header)
         dj = response.json()
 
@@ -34,8 +35,8 @@ class API:
                         pandas.read_json(json.dumps(dj["data"], ensure_ascii=False))
                     )
                 skip_start += skip_step
-                return self.get_all_lide_domy_byty(
-                    skip_start=skip_start, skip_step=skip_step, data=data
+                return self._get_all(
+                    api_suffix, skip_start=skip_start, skip_step=skip_step, data=data
                 )
 
             else:
@@ -51,6 +52,12 @@ class API:
             self.data = data
             return self
 
+    def get_all_lide_domy_byty(self) -> Any:
+        self._get_all(API_SUFFIXES["L_D_B"])
+        return self
+
     def save_data(self, filename: Text) -> None:
+        print("Saving data...")
         with ExcelWriter(f"{filename}.xlsx", engine="xlsxwriter") as w:
             self.data.to_excel(w, sheet_name=f"{filename}")
+        print(f"Data saved to {filename}")
