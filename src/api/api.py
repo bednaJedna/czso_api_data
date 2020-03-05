@@ -1,23 +1,22 @@
 import json
 from sys import setrecursionlimit
-from typing import Any, Text, Union
+from typing import Any, Dict, Text
 
 import pandas
 import requests as r
 from pandas import ExcelWriter
 
+setrecursionlimit(100000)
+
 
 class API:
     def __init__(self, api_key: Text) -> None:
-        self.api_key = api_key
-        self._api_url_base = "https://api.apitalks.store/czso.cz/"
-        self._api_auth_header = {"x-api-key": self.api_key}
+        self.api_key: Text = api_key
+        self._api_url_base: Text = "https://api.apitalks.store/czso.cz/"
+        self._api_auth_header: Dict = {"x-api-key": self.api_key}
+        self.data: Any = None
 
-    def get_all_lide_domy_byty(
-        self, skip_start=0, skip_step=30, data=None
-    ) -> Union[None, Any]:
-
-        setrecursionlimit(100000)
+    def get_all_lide_domy_byty(self, skip_start=0, skip_step=30, data=None) -> Any:
 
         filter_ = '?filter={"skip": %d}' % (skip_start)
         reurl = f"{self._api_url_base}lide-domy-byty{filter_}"
@@ -41,15 +40,17 @@ class API:
 
             else:
                 print("Finished.")
-                return data
+                self.data = data
+                return self
 
         else:
             print(
                 f"Connection error, response status code {response.status_code} \
                 Salvaging all data fetched up to this point."
             )
-            return data
+            self.data = data
+            return self
 
-    def save_data(self, data: Any, filename: Text) -> None:
+    def save_data(self, filename: Text) -> None:
         with ExcelWriter(f"{filename}.xlsx", engine="xlsxwriter") as w:
-            data.to_excel(w, sheet_name="{filename}")
+            self.data.to_excel(w, sheet_name=f"{filename}")
