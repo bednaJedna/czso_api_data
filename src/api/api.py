@@ -57,6 +57,25 @@ class API:
 
         return self
 
+    def _get_single(self, api_suffix: Text, id_: Text) -> Any:
+        reurl = f"{self._api_url_base}{api_suffix}/{id_}"
+        response = r.get(reurl, headers=self._api_auth_header)
+        dj = response.json()
+
+        print(reurl, response.status_code, dj)
+
+        if response.status_code == 200:
+            self.data = pandas.read_json(
+                json.dumps(dj, ensure_ascii=False), typ="frame", orient="index"
+            ).T
+        else:
+            print(
+                f"Connection error.\nResponse status code: {response.status_code} \
+                \nResponse message: {response.json()}"
+            )
+
+        return self
+
     def _create_dirs_if_not_exist(self, dirpath: Text) -> None:
         if not isdir(dirpath):
             makedirs(dirpath, exist_ok=True)
@@ -70,6 +89,12 @@ class API:
 
     def get_all_lide_domy_byty(self, human_labels=False) -> Any:
         self._get_all(API_SUFFIXES["L_D_B"])
+        if human_labels:
+            self.replace_labels(LABELS_LIDE_DOMY_BYTY)
+        return self
+
+    def get_single_lide_domy_byty(self, id_: Text, human_labels=False) -> Any:
+        self._get_single(API_SUFFIXES["L_D_B"], id_)
         if human_labels:
             self.replace_labels(LABELS_LIDE_DOMY_BYTY)
         return self
