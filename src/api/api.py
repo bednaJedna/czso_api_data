@@ -1,5 +1,7 @@
 import json
 from typing import Any, Dict, Text
+from os.path import isdir, join
+from os import makedirs, getcwd
 
 import pandas
 import requests as r
@@ -8,6 +10,7 @@ from pandas import ExcelWriter
 from src.api.schemas import LABELS_LIDE_DOMY_BYTY, LABELS_VYJIZDKY_ZAMESTNANI
 
 API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty", "V_Z": "vyjizdky-zamestnani"}
+DATA_OUTPUT: Text = join(getcwd(), "data")
 
 
 class API:
@@ -54,6 +57,10 @@ class API:
 
         return self
 
+    def _create_dirs_if_not_exist(self, dirpath: Text) -> None:
+        if not isdir(dirpath):
+            makedirs(dirpath, exist_ok=True)
+
     def replace_labels(self, labels: Dict) -> Any:
         try:
             self.data = self.data.rename(columns=labels)
@@ -73,8 +80,10 @@ class API:
             self.replace_labels(LABELS_VYJIZDKY_ZAMESTNANI)
         return self
 
-    def save_data(self, filename: Text) -> None:
+    def save_data(self, filename: Text, dirpath=DATA_OUTPUT) -> None:
         print("Saving data...")
-        with ExcelWriter(f"{filename}.xlsx", engine="xlsxwriter") as w:
+        self._create_dirs_if_not_exist(dirpath)
+        filepath = join(dirpath, f"{filename}.xlsx")
+        with ExcelWriter(filepath, engine="xlsxwriter") as w:
             self.data.to_excel(w, sheet_name=f"{filename}")
-        print(f"Data saved to {filename}")
+        print(f"Data saved to {filepath}")
