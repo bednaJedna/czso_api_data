@@ -7,7 +7,7 @@ from pandas import ExcelWriter
 
 from src.api.schemas import LABELS_LIDE_DOMY_BYTY
 
-API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty"}
+API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty", "V_Z": "vyjizdky-zamestnani"}
 
 
 class API:
@@ -55,13 +55,22 @@ class API:
         return self
 
     def replace_labels(self, labels: Dict) -> Any:
-        self.data = self.data.rename(columns=labels)
-        return self
+        try:
+            self.data = self.data.rename(columns=labels)
+            return self
+        except Exception:
+            return self
 
-    def get_all_lide_domy_byty(self, human_labels=True) -> Any:
+    def get_all_lide_domy_byty(self, human_labels=False) -> Any:
         self._get_all(API_SUFFIXES["L_D_B"])
         if human_labels:
             self.replace_labels(LABELS_LIDE_DOMY_BYTY)
+        return self
+
+    def get_all_vyjizdky_do_zamestnani(self, human_labels=False) -> Any:
+        self._get_all(API_SUFFIXES["V_Z"])
+        if human_labels:
+            pass
         return self
 
     def save_data(self, filename: Text) -> None:
