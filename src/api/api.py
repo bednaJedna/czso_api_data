@@ -5,6 +5,7 @@ import pandas
 import requests as r
 from pandas import ExcelWriter
 
+from src.api.schemas import LABELS_LIDE_DOMY_BYTY
 
 API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty"}
 
@@ -53,8 +54,14 @@ class API:
 
         return self
 
-    def get_all_lide_domy_byty(self) -> Any:
+    def replace_labels(self, labels: Dict) -> Any:
+        self.data = self.data.rename(columns=labels)
+        return self
+
+    def get_all_lide_domy_byty(self, human_labels=True) -> Any:
         self._get_all(API_SUFFIXES["L_D_B"])
+        if human_labels:
+            self.replace_labels(LABELS_LIDE_DOMY_BYTY)
         return self
 
     def save_data(self, filename: Text) -> None:
