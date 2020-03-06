@@ -5,7 +5,7 @@ import pandas
 import requests as r
 from pandas import ExcelWriter
 
-from src.api.schemas import LABELS_LIDE_DOMY_BYTY
+from src.api.schemas import LABELS_LIDE_DOMY_BYTY, LABELS_VYJIZDKY_ZAMESTNANI
 
 API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty", "V_Z": "vyjizdky-zamestnani"}
 
@@ -70,7 +70,7 @@ class API:
     def get_all_vyjizdky_do_zamestnani(self, human_labels=False) -> Any:
         self._get_all(API_SUFFIXES["V_Z"])
         if human_labels:
-            pass
+            self.replace_labels(LABELS_VYJIZDKY_ZAMESTNANI)
         return self
 
     def save_data(self, filename: Text) -> None:
