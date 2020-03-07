@@ -1,7 +1,9 @@
 import json
 from typing import Any, Dict, Text
+from multiprocessing import Pool
 from os.path import isdir, join
 from os import makedirs, getcwd
+from time import sleep
 
 import pandas
 import requests as r
@@ -9,8 +11,19 @@ from pandas import ExcelWriter
 
 from src.api.schemas import LABELS_LIDE_DOMY_BYTY, LABELS_VYJIZDKY_ZAMESTNANI
 
-API_SUFFIXES: Dict = {"L_D_B": "lide-domy-byty", "V_Z": "vyjizdky-zamestnani"}
 DATA_OUTPUT: Text = join(getcwd(), "data")
+API_SUFFIXES: Dict = {
+    "L_D_B": "lide-domy-byty",
+    "V_Z": "vyjizdky-zamestnani",
+    "O_S_J": "obyvatele-sidelni-jednotky",
+    "O_D": "obyvatelstvo-domy",
+    "P_H_M": "prumerne-mzdy-odvetvi",
+    "C_O_V_P": "cizinci-podle-statniho-obcanstvi-veku-a-pohlavi",
+    "P_O": "pohyb-obyvatel-za-cr-kraje-okresy-so-orp-a-obce",
+    "N_D_O": "nadeje-doziti-v-okresech-a-spravnich-obvodech-orp",
+    "P_C_P_V": "prumerne-spotrebitelske-ceny-vybranych-vyrobku-potravinarske-vyrobky",
+    "H_P_Z": "hoste-a-prenocovani-v-hromadnych-ubytovacich-zarizenich-podle-zemi",
+}
 
 
 class API:
@@ -20,7 +33,9 @@ class API:
         self._api_auth_header: Dict = {"x-api-key": self.api_key}
         self.data: Any = None
 
-    def _get_all(self, api_suffix: Text, skip_start=0, skip_step=30, data=None) -> Any:
+    def _get_all(
+        self, api_suffix: Text, skip_start=0, skip_step=30, data=None, sleep_=False
+    ) -> Any:
 
         while True:
             filter_ = '?filter={"skip": %d}' % (skip_start)
@@ -28,7 +43,7 @@ class API:
             response = r.get(reurl, headers=self._api_auth_header)
             dj = response.json()
 
-            print(reurl, response.status_code)
+            print(reurl, response.status_code, dj)
 
             if response.status_code == 200:
                 if len(dj["data"]) > 0:
@@ -41,6 +56,8 @@ class API:
                             pandas.read_json(json.dumps(dj["data"], ensure_ascii=False))
                         )
                     skip_start += skip_step
+                    if sleep_:
+                        sleep(0.5)
                 else:
                     print("Finished.")
                     self.data = data
@@ -56,6 +73,13 @@ class API:
                 break
 
         return self
+
+    def worker(self, api_suffix: Text, sleep_=True) -> Any:
+        self._get_all(api_suffix, sleep_=sleep_).save_data(f"{api_suffix}"[:30])
+
+    def get_all_data(self) -> None:
+        with Pool() as p:
+            p.map(self.worker, list(API_SUFFIXES.values()))
 
     def _get_single(self, api_suffix: Text, id_: Text) -> Any:
         reurl = f"{self._api_url_base}{api_suffix}/{id_}"
@@ -103,6 +127,13 @@ class API:
         self._get_all(API_SUFFIXES["V_Z"])
         if human_labels:
             self.replace_labels(LABELS_VYJIZDKY_ZAMESTNANI)
+        return self
+
+    def get_all_ceny_potravin(self, human_labels=False) -> Any:
+        self._get_all(API_SUFFIXES["P_C_P_V"])
+        if human_labels:
+            # TODO
+            pass
         return self
 
     def save_data(self, filename: Text, dirpath=DATA_OUTPUT) -> None:
