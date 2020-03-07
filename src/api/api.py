@@ -43,7 +43,7 @@ class API:
             response = r.get(reurl, headers=self._api_auth_header)
             dj = response.json()
 
-            print(reurl, response.status_code, dj)
+            print(reurl, response.status_code)
 
             if response.status_code == 200:
                 if len(dj["data"]) > 0:
