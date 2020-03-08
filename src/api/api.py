@@ -78,7 +78,7 @@ class API:
         self._get_all(api_suffix, sleep_=sleep_).save_data(f"{api_suffix}"[:30])
 
     def get_all_data(self) -> None:
-        with Pool() as p:
+        with Pool(maxtasksperchild=1) as p:
             p.map(self.worker, list(API_SUFFIXES.values()))
 
     def _get_single(self, api_suffix: Text, id_: Text) -> Any:
