@@ -141,3 +141,4 @@ dmypy.json
 *.xlsx
 data
 test.py
+.pyre_configuration
