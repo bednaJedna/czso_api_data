@@ -1,3 +1,4 @@
+# pyre-strict
 import json
 from typing import Any, Dict, Text
 from multiprocessing import Pool
@@ -5,6 +6,7 @@ from os.path import isdir, join
 from os import makedirs, getcwd
 from time import sleep
 
+# pyre-fixme[21]: Could not find `pandas`.
 import pandas
 import requests as r
 from pandas import ExcelWriter
@@ -12,6 +14,8 @@ from pandas import ExcelWriter
 from src.api.schemas import LABELS_LIDE_DOMY_BYTY, LABELS_VYJIZDKY_ZAMESTNANI
 
 DATA_OUTPUT: Text = join(getcwd(), "data")
+# pyre-fixme[24]: Generic type `dict` expects 2 type parameters, use `typing.Dict`
+#  to avoid runtime subscripting errors.
 API_SUFFIXES: Dict = {
     "L_D_B": "lide-domy-byty",
     "V_Z": "vyjizdky-zamestnani",
@@ -47,10 +51,17 @@ class API:
         """
         self.api_key: Text = api_key
         self._api_url_base: Text = "https://api.apitalks.store/czso.cz/"
+        # pyre-fixme[24]: Generic type `dict` expects 2 type parameters, use
+        #  `typing.Dict` to avoid runtime subscripting errors.
         self._api_auth_header: Dict = {"x-api-key": self.api_key}
+        # pyre-fixme[4]: Attribute annotation cannot be `Any`.
         self.data: Any = None
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
     def _get_all(
+        # pyre-fixme[2]: Parameter must be annotated.
+        # pyre-fixme[2]: Parameter must be annotated.
+        # pyre-fixme[2]: Parameter must be annotated.
         self, api_suffix: Text, skip_start=0, skip_step=30, sleep_=False
     ) -> Any:
         """Private method.
@@ -90,6 +101,7 @@ class API:
                             json.dumps(dj["data"], ensure_ascii=False)
                         )
                     else:
+                        # pyre-fixme[16]: Optional type has no attribute `append`.
                         data = data.append(
                             pandas.read_json(json.dumps(dj["data"], ensure_ascii=False))
                         )
@@ -112,6 +124,7 @@ class API:
 
         return self
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
     def _get_single(self, api_suffix: Text, id_: Text) -> Any:
         """Private method.
         Gets data for provided id_ parameter from given resource of the api, as specified via api_suffix
@@ -154,6 +167,9 @@ class API:
         if not isdir(dirpath):
             makedirs(dirpath, exist_ok=True)
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
+    # pyre-fixme[24]: Generic type `dict` expects 2 type parameters, use
+    #  `typing.Dict` to avoid runtime subscripting errors.
     def replace_labels(self, labels: Dict) -> Any:
         """Replaces labels in pandas DataFrame object.
         
@@ -169,6 +185,8 @@ class API:
         except Exception:
             return self
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
+    # pyre-fixme[2]: Parameter must be annotated.
     def _worker(self, api_suffix: Text, sleep_=True) -> Any:
         """Private method.
         Worker for multiprocessed method "get_all_data".
@@ -192,6 +210,8 @@ class API:
         with Pool(maxtasksperchild=1) as p:
             p.map(self._worker, list(API_SUFFIXES.values()))
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
+    # pyre-fixme[2]: Parameter must be annotated.
     def get_all_lide_domy_byty(self, human_labels=False) -> Any:
         """Gets all data from api resource "lide-domy-byty".
         
@@ -206,6 +226,8 @@ class API:
             self.replace_labels(LABELS_LIDE_DOMY_BYTY)
         return self
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
+    # pyre-fixme[2]: Parameter must be annotated.
     def get_single_lide_domy_byty(self, id_: Text, human_labels=False) -> Any:
         """Gets data for given id from specific api resource "lide-domy-byty".
         
@@ -223,6 +245,8 @@ class API:
             self.replace_labels(LABELS_LIDE_DOMY_BYTY)
         return self
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
+    # pyre-fixme[2]: Parameter must be annotated.
     def get_all_vyjizdky_do_zamestnani(self, human_labels=False) -> Any:
         """Gets all data from api resource "vyjizdky-zamestnani"
         
@@ -237,6 +261,8 @@ class API:
             self.replace_labels(LABELS_VYJIZDKY_ZAMESTNANI)
         return self
 
+    # pyre-fixme[3]: Return annotation cannot be `Any`.
+    # pyre-fixme[2]: Parameter must be annotated.
     def get_all_ceny_potravin(self, human_labels=False) -> Any:
         """Gets all data from api resource "prumerne-spotrebitelske-ceny-vybranych-vyrobku-potravinarske-vyrobky"
         
@@ -252,6 +278,7 @@ class API:
             pass
         return self
 
+    # pyre-fixme[2]: Parameter must be annotated.
     def save_data(self, filename: Text, dirpath=DATA_OUTPUT) -> None:
         """Saves data in pandas DataFrame object into xlsx file.
         Filename and sheetname are specified by filename argument.
