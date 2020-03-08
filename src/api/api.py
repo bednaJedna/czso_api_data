@@ -27,14 +27,31 @@ API_SUFFIXES: Dict = {
 
 
 class API:
+    """Class for API interactions with "api.apitalks.store/czso.cz/" api.
+    Provides all methods to access, process and save data.
+
+    Methods are constructed to be used as chained, e.g:
+
+    api = API("yourkey")
+    api.get_all_lide_domy_byty().save_data("filename_string")
+    
+    Returns:
+        object -- API class instance
+    """
+
     def __init__(self, api_key: Text) -> None:
+        """Initializer for API class.
+        
+        Arguments:
+            api_key {Text} -- private API key provided by Apitalks
+        """
         self.api_key: Text = api_key
         self._api_url_base: Text = "https://api.apitalks.store/czso.cz/"
         self._api_auth_header: Dict = {"x-api-key": self.api_key}
         self.data: Any = None
 
     def _get_all(
-        self, api_suffix: Text, skip_start=0, skip_step=30, data=None, sleep_=False
+        self, api_suffix: Text, skip_start=0, skip_step=30, sleep_=False
     ) -> Any:
 
         while True:
