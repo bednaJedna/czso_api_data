@@ -1,7 +1,7 @@
 from typing import Dict
 
 
-LABELS_LIDE_DOMY_BYTY: Dict = {
+LABELS_LIDE_DOMY_BYTY: Dict[str, str] = {
     "id": "Unique_ID",
     "typuz_naz": "Typ_území",
     "nazev": "Název_územní_jednotky",
@@ -20,7 +20,7 @@ LABELS_LIDE_DOMY_BYTY: Dict = {
     "u11": "Hospodařící_domácnosti",
 }
 
-LABELS_VYJIZDKY_ZAMESTNANI: Dict = {
+LABELS_VYJIZDKY_ZAMESTNANI: Dict[str, str] = {
     "idhod": "Unique_ID",
     "hodnota": "Hodnota",
     "stapro_kod": "Kód_statistické_proměnné_datové_sady",
