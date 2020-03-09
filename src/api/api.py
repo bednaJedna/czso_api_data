@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Text
+from typing import Any, Dict, Text, Union, Sized
 from multiprocessing import Pool
 from os.path import isdir, join
 from os import makedirs, getcwd
@@ -12,7 +12,7 @@ from pandas import ExcelWriter
 from src.api.schemas import LABELS_LIDE_DOMY_BYTY, LABELS_VYJIZDKY_ZAMESTNANI
 
 DATA_OUTPUT: Text = join(getcwd(), "data")
-API_SUFFIXES: Dict = {
+API_SUFFIXES: Dict[str, str] = {
     "L_D_B": "lide-domy-byty",
     "V_Z": "vyjizdky-zamestnani",
     "O_S_J": "obyvatele-sidelni-jednotky",
@@ -47,7 +47,7 @@ class API:
         """
         self.api_key: Text = api_key
         self._api_url_base: Text = "https://api.apitalks.store/czso.cz/"
-        self._api_auth_header: Dict = {"x-api-key": self.api_key}
+        self._api_auth_header: Dict[str, str] = {"x-api-key": self.api_key}
         self.data: Any = None
 
     def _get_all(
@@ -73,13 +73,13 @@ class API:
             Any -- pandas DataFrame in self.data attribute
         """
 
-        data = None
+        data: Any = None
 
         while True:
-            filter_ = '?filter={"skip": %d}' % (skip_start)
-            reurl = f"{self._api_url_base}{api_suffix}{filter_}"
-            response = r.get(reurl, headers=self._api_auth_header)
-            dj = response.json()
+            filter_: Text = '?filter={"skip": %d}' % (skip_start)
+            reurl: Text = f"{self._api_url_base}{api_suffix}{filter_}"
+            response: Any = r.get(reurl, headers=self._api_auth_header)
+            dj: Any = response.json()
 
             print(reurl, response.status_code)
 
@@ -125,9 +125,9 @@ class API:
         Returns:
             Any -- pandas DataFrames stored id self.data attribute
         """
-        reurl = f"{self._api_url_base}{api_suffix}/{id_}"
-        response = r.get(reurl, headers=self._api_auth_header)
-        dj = response.json()
+        reurl: Text = f"{self._api_url_base}{api_suffix}/{id_}"
+        response: Any = r.get(reurl, headers=self._api_auth_header)
+        dj: Any = response.json()
 
         print(reurl, response.status_code, dj)
 
@@ -154,7 +154,7 @@ class API:
         if not isdir(dirpath):
             makedirs(dirpath, exist_ok=True)
 
-    def replace_labels(self, labels: Dict) -> Any:
+    def replace_labels(self, labels: Dict[str, str]) -> Any:
         """Replaces labels in pandas DataFrame object.
         
         Arguments:
@@ -265,7 +265,7 @@ class API:
         """
         print("Saving data...")
         self._create_dirs_if_not_exist(dirpath)
-        filepath = join(dirpath, f"{filename}.xlsx")
+        filepath: Text = join(dirpath, f"{filename}.xlsx")
         with ExcelWriter(filepath, engine="xlsxwriter") as w:
             self.data.to_excel(w, sheet_name=f"{filename}")
         print(f"Data saved to {filepath}")
